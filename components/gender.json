@@ -1,0 +1,238 @@
+[
+  {
+    "id": "0",
+    "nome_genero": "Jon-Gun"
+  },
+  {
+    "id": "1",
+    "nome_genero": "Aliens"
+  },
+  {
+    "id": "2",
+    "nome_genero": "Artes Marciais"
+  },
+  {
+    "id": "3",
+    "nome_genero": "Aventura"
+  },
+  {
+    "id": "4",
+    "nome_genero": "Ação"
+  },
+  {
+    "id": "5",
+    "nome_genero": "Boy's Love"
+  },
+  {
+    "id": "6",
+    "nome_genero": "Comédia"
+  },
+  {
+    "id": "7",
+    "nome_genero": "Crime"
+  },
+  {
+    "id": "8",
+    "nome_genero": "Culinária"
+  },
+  {
+    "id": "9",
+    "nome_genero": "Delinquentes"
+  },
+  {
+    "id": "10",
+    "nome_genero": "Demônios"
+  },
+  {
+    "id": "11",
+    "nome_genero": "Drama"
+  },
+  {
+    "id": "12",
+    "nome_genero": "Ecchi"
+  },
+  {
+    "id": "13",
+    "nome_genero": "Escolar"
+  },
+  {
+    "id": "14",
+    "nome_genero": "Esporte"
+  },
+  {
+    "id": "15",
+    "nome_genero": "Esportes"
+  },
+  {
+    "id": "16",
+    "nome_genero": "Fantasia"
+  },
+  {
+    "id": "17",
+    "nome_genero": "Fantasma"
+  },
+  {
+    "id": "18",
+    "nome_genero": "Ficção Científica"
+  },
+  {
+    "id": "19",
+    "nome_genero": "Gender Bender"
+  },
+  {
+    "id": "20",
+    "nome_genero": "Gore"
+  },
+  {
+    "id": "21",
+    "nome_genero": "Harém"
+  },
+  {
+    "id": "22",
+    "nome_genero": "Histórico"
+  },
+  {
+    "id": "23",
+    "nome_genero": "Horror"
+  },
+  {
+    "id": "24",
+    "nome_genero": "Isekai"
+  },
+  {
+    "id": "25",
+    "nome_genero": "Josei"
+  },
+  {
+    "id": "26",
+    "nome_genero": "Magia"
+  },
+  {
+    "id": "27",
+    "nome_genero": "Mecha"
+  },
+  {
+    "id": "28",
+    "nome_genero": "Militar"
+  },
+  {
+    "id": "29",
+    "nome_genero": "Mistério"
+  },
+  {
+    "id": "30",
+    "nome_genero": "Monster Girls"
+  },
+  {
+    "id": "31",
+    "nome_genero": "Monstros"
+  },
+  {
+    "id": "32",
+    "nome_genero": "Máfia"
+  },
+  {
+    "id": "33",
+    "nome_genero": "Músic"
+  },
+  {
+    "id": "34",
+    "nome_genero": "Música"
+  },
+  {
+    "id": "35",
+    "nome_genero": "Policial"
+  },
+  {
+    "id": "36",
+    "nome_genero": "Psicológico"
+  },
+  {
+    "id": "37",
+    "nome_genero": "Pós-Apocalíptico"
+  },
+  {
+    "id": "38",
+    "nome_genero": "Realidade Virtual"
+  },
+  {
+    "id": "39",
+    "nome_genero": "Reencarnação"
+  },
+  {
+    "id": "40",
+    "nome_genero": "Romance"
+  },
+  {
+    "id": "41",
+    "nome_genero": "Shoujo"
+  },
+  {
+    "id": "42",
+    "nome_genero": "Shoujo Ai"
+  },
+  {
+    "id": "43",
+    "nome_genero": "Slice of Life"
+  },
+  {
+    "id": "44",
+    "nome_genero": "Ygo"
+  },
+  {
+    "id": "45",
+    "nome_genero": "Sobrenatural"
+  },
+  {
+    "id": "46",
+    "nome_genero": "Sobrevivência"
+  },
+  {
+    "id": "47",
+    "nome_genero": "Super Poderes"
+  },
+  {
+    "id": "48",
+    "nome_genero": "Super-Herói"
+  },
+  {
+    "id": "49",
+    "nome_genero": "Suspense"
+  },
+  {
+    "id": "50",
+    "nome_genero": "Terror"
+  },
+  {
+    "id": "51",
+    "nome_genero": "Tragédia"
+  },
+  {
+    "id": "52",
+    "nome_genero": "Vampiros"
+  },
+  {
+    "id": "53",
+    "nome_genero": "Viagem no Tempo"
+  },
+  {
+    "id": "54",
+    "nome_genero": "Vilã"
+  },
+  {
+    "id": "55",
+    "nome_genero": "Vilão"
+  },
+  {
+    "id": "56",
+    "nome_genero": "Wuxia"
+  },
+  {
+    "id": "57",
+    "nome_genero": "Zumbi"
+  },
+  {
+    "id": "58",
+    "nome_genero": "Zumbis"
+  }
+]
