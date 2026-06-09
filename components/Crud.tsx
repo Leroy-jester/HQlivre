@@ -1,20 +1,34 @@
 import * as SQLite from 'expo-sqlite';
 
+let db: SQLite.SQLiteDatabase;
+
+export async function getDB() {
+    if (!db) {
+        db = await SQLite.openDatabaseAsync('NossoBanco');
+    }
+
+    return db;
+}
+
 //crud para usar online, para quando cair a internet ir salvando no celular e daí enviar para o site quando voltar a conecção, usando o expo-sqlite
 
 type Manga = {
-    id?: string;
-    image?: Uint8Array;
-    nome?: string;
-    autor?: string;
+    id: string;
+    image_uri?: string;
+    nome: string;
+    autor: string;
     chapters?: number;
     status?: string;
     note?: number;
     description?: string;
+    generos?: Gender[];
 }
 type Gender = {
-    id?: string;
-    nome_genero?: Array<string>;
+    id: string;
+    nome_genero: string;
+}
+type MangaCompleto = Manga & {
+    generos: Gender[];
 }
 
 /* O Crud precisa ser capaz de fazer 
@@ -49,8 +63,8 @@ const criaBD = async () => {
     );
 
     CREATE TABLE IF NOT EXISTS mangas_genders (
-        manga_id INTEGER, 
-        genero_id INTEGER, 
+        manga_id TEXT,
+        genero_id TEXT,
         PRIMARY KEY(manga_id, genero_id),
         FOREIGN KEY (manga_id) REFERENCES mangas(id) ON DELETE CASCADE,
         FOREIGN KEY (genero_id) REFERENCES genders(id) ON DELETE CASCADE
@@ -58,15 +72,114 @@ const criaBD = async () => {
     `);
   bd.closeAsync();
 }
+// função para não ficar repetindo código
+
+const montarManga = async (manga: Manga): Promise<MangaCompleto> => {
+    const bd = await getDB();
+
+    const generos = await bd.getAllAsync<Gender>(
+        `
+        SELECT g.*
+        FROM genders g
+        INNER JOIN mangas_genders mg
+            ON g.id = mg.genero_id
+        WHERE mg.manga_id = ?
+        `,
+        [manga.id]
+    );
+
+    return {
+        ...manga,
+        generos
+    };
+};
+
 //GET ALL, retorna todos os mangas postados e seus gêneros 
-const pegarMangas = async () => {
-    const bd = await SQLite.openDatabaseAsync('NossoBanco');
+export const pegarMangas = async () => {
+    const bd = await getDB();
 
-    await bd.runAsync('GET ')
-}
+    const mangas = await bd.getAllAsync<Manga>(
+        'SELECT * FROM mangas'
+    );
+
+    return Promise.all(
+        mangas.map(montarManga)
+    );
+};
 //GET by NOME, retorna todos os mangas com o nome parecido com oque foi escrito
+export const pegarMangasPorNome = async (nome: string) => {
+    const bd = await getDB();
 
+    const mangas = await bd.getAllAsync<Manga>(
+        `
+        SELECT *
+        FROM mangas
+        WHERE nome LIKE ?
+        `,
+        [`%${nome}%`]
+    );
+
+    return Promise.all(
+        mangas.map(montarManga)
+    );
+};
 //GET by GENDER, retorna todos os mangas baseados no gênero
+export const pegarMangasPorGenero = async (generoId: string) => {
+    const bd = await getDB();
 
+    const mangas = await bd.getAllAsync<Manga>(
+        `
+        SELECT m.*
+        FROM mangas m
+        INNER JOIN mangas_genders mg
+            ON m.id = mg.manga_id
+        WHERE mg.genero_id = ?
+        `,
+        [generoId]
+    );
+
+    return Promise.all(
+        mangas.map(montarManga)
+    );
+};
 //GET by autor, retorna todas as obras que aquele escritor já fez obs: quando for postar um mangá dar opção baseado nos mangakás já colocado lá
+export const pegarMangasPorAutor = async (autor: string) => {
+    const bd = await getDB();
 
+    const mangas = await bd.getAllAsync<Manga>(
+        `
+        SELECT *
+        FROM mangas
+        WHERE autor LIKE ?
+        `,
+        [`%${autor}%`]
+    );
+
+    return Promise.all(
+        mangas.map(montarManga)
+    );
+};
+
+/* Vai retornar algo parecido com isso
+
+{
+  "id": "123",
+  "nome": "Re:Zero",
+  "autor": "Tappei Nagatsuki",
+  "chapters": 60,
+  "note": 4,
+  "image_uri": "...",
+  "generos": [
+    {
+      "id": "16",
+      "nome_genero": "Fantasia"
+    },
+    {
+      "id": "24",
+      "nome_genero": "Isekai"
+    }
+  ]
+}
+*/
+
+//Post
