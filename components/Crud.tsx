@@ -194,7 +194,17 @@ export const enviarManga = async (
 
         await bd.runAsync(
             `
-            INSERT INTO mangas (id, image_uri, nome, autor, chapters, status, note, description, created_at, updated_at
+            INSERT INTO mangas (
+                id, 
+                image_uri, 
+                nome, 
+                autor, 
+                chapters, 
+                status, 
+                note, 
+                description, 
+                created_at, 
+                updated_at
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
@@ -227,7 +237,39 @@ export const enviarManga = async (
 
 //PACTH para atualizar os mangas e seus gêneros
 
-const atualizarMangas = async () => {
+export const atualizarManga = async (
+    id: string,
+    dados: Partial<Manga>
+) => {
     const bd = await getDB();
-    
+
+    const campos: string[] = [];
+    const valores: any[] = [];
+
+    Object.entries(dados).forEach(([chave, valor]) => {
+        campos.push(`${chave} = ?`);
+        valores.push(valor);
+    });
+
+    campos.push('updated_at = ?');
+    valores.push(new Date().toISOString());
+
+    valores.push(id);
+
+    await bd.runAsync(
+        `
+        UPDATE mangas
+        SET ${campos.join(', ')}
+        WHERE id = ?
+        `,
+        valores
+    );
+};
+
+//DELETE para apagar os outros dados do banco
+
+export const deletarManga = async (manga:Manga) => {
+    const bd = await getDB();
+
+    await bd.runAsync('DELETE * FROM mangas WHERE ?', manga.id)
 }
