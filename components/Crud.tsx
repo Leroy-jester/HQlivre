@@ -14,14 +14,14 @@ export async function getDB() {
 
 type Manga = {
     id: string;
-    image_uri?: string;
+    image_uri: string;
     nome: string;
     autor: string;
-    chapters?: number;
-    status?: string;
-    note?: number;
-    description?: string;
-    generos?: Gender[];
+    chapters: number;
+    status: string;
+    note: number;
+    description: string;
+    generos: Gender[];
 }
 type Gender = {
     id: string;
@@ -183,3 +183,51 @@ export const pegarMangasPorAutor = async (autor: string) => {
 */
 
 //Post
+
+export const enviarManga = async (
+    manga: Manga,
+    generosIds: string[]
+) => {
+    const bd = await getDB();
+
+    await bd.withTransactionAsync(async () => {
+
+        await bd.runAsync(
+            `
+            INSERT INTO mangas (id, image_uri, nome, autor, chapters, status, note, description, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+            [
+                manga.id,
+                manga.image_uri,
+                manga.nome,
+                manga.autor,
+                manga.chapters,
+                manga.status,
+                manga.note,
+                manga.description,
+                new Date().toISOString(),
+                new Date().toISOString()
+            ]
+        );
+
+        for (const generoId of generosIds) {
+            await bd.runAsync(
+                `
+                INSERT INTO mangas_genders
+                (manga_id, genero_id)
+                VALUES (?, ?)
+                `,
+                [manga.id, generoId]
+            );
+        }
+    });
+};
+
+//PACTH para atualizar os mangas e seus gêneros
+
+const atualizarMangas = async () => {
+    const bd = await getDB();
+    
+}
