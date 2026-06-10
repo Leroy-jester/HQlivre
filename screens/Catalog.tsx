@@ -1,4 +1,5 @@
 import { View, Text, Button } from 'react-native';
+import { pegarMangas, pegarMangasPorAutor, pegarMangasPorGenero, pegarMangasPorNome } from '../components/Crud';
 
 export function Catalog({ navigation }: any) {
   return (
@@ -18,6 +19,7 @@ export function Catalog({ navigation }: any) {
 
         <div>
             
+            {}
         </div>
       
     </View>

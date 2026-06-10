@@ -3,6 +3,7 @@ import { View, Text, Button } from 'react-native';
 export function Favorite({ navigation }: any) {
   return (
     <View>
+        <div>
       <Text>Home</Text>
 
       <Button
@@ -13,6 +14,10 @@ export function Favorite({ navigation }: any) {
         title="Ir para Catalogo"
         onPress={() => navigation.navigate('Catalogo')}
       />
+              </div>
+        <div>
+            
+        </div>
     </View>
   );
 }

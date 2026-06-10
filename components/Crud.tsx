@@ -44,7 +44,7 @@ import * as SQLite from 'expo-sqlite';
     await bd.execAsync(`
         PRAGMA journal_mode = WAL;
         CREATE TABLE mangas (
-            id TEXT PRIMARY KEY,
+            id TEXT PRIMARY KEY AUTOINCREMENT,
             image_uri TEXT,
             nome TEXT NOT NULL,
             autor TEXT NOT NULL,
