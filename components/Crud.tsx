@@ -38,7 +38,7 @@ import * as SQLite from 'expo-sqlite';
     PATCH, 
     DELETE*/
 
-    const criaBD = async () => {
+    export const criaBD = async () => {
     const bd = await SQLite.openDatabaseAsync('NossoBanco');
 
     await bd.execAsync(`
