@@ -10,7 +10,9 @@ import {
             pegarMangasPorAutor, 
             pegarMangasPorGenero, 
             pegarMangasPorNome,
-            enviarManga
+            enviarManga,
+            listarGeneros,
+            inserirGeneros
         } from '../components/Crud';
 
 export function Catalog({ navigation }: any) {
@@ -30,14 +32,25 @@ export function Catalog({ navigation }: any) {
         init();
     }, [])
 
-    const init = async () => {
-        try {
-            await criaBD();
-            await carregarMangas()
-        } catch(error) {
-            console.log('ERRO INIT', error);
-        }
+  const init = async () => {
+    try {
+      await criaBD();
+
+      console.log('BD criado');
+
+      await inserirGeneros();
+
+      console.log('Generos inseridos');
+
+      const generos = await listarGeneros();
+
+      console.log('GENEROS:', generos);
+
+      await carregarMangas();
+    } catch (error) {
+      console.log('ERRO INIT', error);
     }
+  };
 
     const carregarMangas = async () =>{
         try {
@@ -49,32 +62,30 @@ export function Catalog({ navigation }: any) {
     }
     const cadastrarTeste = async () => {
       try {
-          console.log('enviando mangás');
-          
-          await enviarManga({
-            image_uri: '',
+        console.log('ANTES');
+
+        const promessa = enviarManga(
+          {
+            image_uri: 'asd',
             nome: 'Naruto',
             autor: 'Masashi Kishimoto',
             chapters: 700,
             status: 'Finalizado',
             note: 5,
             description: 'Teste SQLite'
-            },[1,2,5]);
+          },
+          [1, 2, 5]
+        );
 
-          console.log('Manga cadastrado');
+        console.log('DEPOIS DE CHAMAR');
 
-          const mangas = await pegarMangas();
+        await promessa;
 
-          console.log('MANGAS:', mangas);
-
-          setMangas(mangas);
+        console.log('FINAL');
       } catch (error) {
-          console.error(
-            'ERRO AO CADASTRAR:',
-            JSON.stringify(error, null, 2)
-          );
+        console.error('ERRO:', error);
       }
-  };
+    };
     
   return (
     <View>
@@ -86,6 +97,7 @@ export function Catalog({ navigation }: any) {
             <View>
             <FlashList
                 data={mangas}
+                estimatedItemSize={100}
                 renderItem={({ item }) => (
                     <View>
                         <Text>{item.nome}</Text>
