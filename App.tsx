@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Favorite } from './screens/Favorite';
 import { Catalog } from './screens/Catalog';
 import { Main } from './screens/Main';
-import { Detail } from './screens/detalhes';
+import { Detail } from './screens/Detalhes';
 
 const Stack = createNativeStackNavigator();
 

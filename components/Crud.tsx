@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { Manga, Gender, MangaCompleto } from './Types/typos';
 
     let db: SQLite.SQLiteDatabase;
 
@@ -12,25 +13,6 @@ import * as SQLite from 'expo-sqlite';
 
     //crud para usar online, para quando cair a internet ir salvando no celular e daí enviar para o site quando voltar a conecção, usando o expo-sqlite
 
-    type Manga = {
-        id: string;
-        image_uri: string;
-        nome: string;
-        autor: string;
-        chapters: number;
-        status: string;
-        note: number;
-        description: string;
-        generos: Gender[];
-    }
-    type Gender = {
-        id: string;
-        nome_genero: string;
-    }
-    type MangaCompleto = Manga & {
-        generos: Gender[];
-    }
-
     /* O Crud precisa ser capaz de fazer 
     PUSH; 
     GET ALL; 
@@ -39,12 +21,13 @@ import * as SQLite from 'expo-sqlite';
     DELETE*/
 
     export const criaBD = async () => {
-    const bd = await SQLite.openDatabaseAsync('NossoBanco');
+    const bd = await getDB();
 
     await bd.execAsync(`
+        PRAGMA foreign_keys = ON;
         PRAGMA journal_mode = WAL;
-        CREATE TABLE mangas (
-            id TEXT PRIMARY KEY AUTOINCREMENT,
+        CREATE TABLE IF NOT EXISTS mangas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             image_uri TEXT,
             nome TEXT NOT NULL,
             autor TEXT NOT NULL,
@@ -57,26 +40,28 @@ import * as SQLite from 'expo-sqlite';
             updated_at TEXT
         );
 
-        CREATE TABLE genders (
-            id TEXT PRIMARY KEY,
+        CREATE TABLE IF NOT EXISTS genders (
+            id INTEGER PRIMARY KEY,
             nome_genero TEXT NOT NULL
         );
 
         CREATE TABLE IF NOT EXISTS mangas_genders (
-            manga_id TEXT,
-            genero_id TEXT,
+            manga_id INTEGER,
+            genero_id INTEGER,
             PRIMARY KEY(manga_id, genero_id),
             FOREIGN KEY (manga_id) REFERENCES mangas(id) ON DELETE CASCADE,
             FOREIGN KEY (genero_id) REFERENCES genders(id) ON DELETE CASCADE
         );
         `);
-    bd.closeAsync();
+    
     }
     // função para não ficar repetindo código
 
     const montarManga = async (manga: Manga): Promise<MangaCompleto> => {
         const bd = await getDB();
-
+        if (manga.id == null) {
+            throw new Error('Manga sem ID');
+        }
         const generos = await bd.getAllAsync<Gender>(
             `
             SELECT g.*
@@ -85,6 +70,7 @@ import * as SQLite from 'expo-sqlite';
                 ON g.id = mg.genero_id
             WHERE mg.manga_id = ?
             `,
+            
             [manga.id]
         );
 
@@ -124,7 +110,7 @@ import * as SQLite from 'expo-sqlite';
         );
     };
     //GET by GENDER, retorna todos os mangas baseados no gênero
-    export const pegarMangasPorGenero = async (generoId: string) => {
+    export const pegarMangasPorGenero = async (generoId: number) => {
         const bd = await getDB();
 
         const mangas = await bd.getAllAsync<Manga>(
@@ -186,16 +172,15 @@ import * as SQLite from 'expo-sqlite';
 
     export const enviarManga = async (
         manga: Manga,
-        generosIds: string[]
+        generosIds: number[]
     ) => {
         const bd = await getDB();
 
         await bd.withTransactionAsync(async () => {
 
-            await bd.runAsync(
+            const resultado = await bd.runAsync(
                 `
-                INSERT INTO mangas (
-                    id, 
+                INSERT INTO mangas ( 
                     image_uri, 
                     nome, 
                     autor, 
@@ -206,10 +191,9 @@ import * as SQLite from 'expo-sqlite';
                     created_at, 
                     updated_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `,
                 [
-                    manga.id,
                     manga.image_uri,
                     manga.nome,
                     manga.autor,
@@ -219,8 +203,12 @@ import * as SQLite from 'expo-sqlite';
                     manga.description,
                     new Date().toISOString(),
                     new Date().toISOString()
+                    
                 ]
+                
             );
+
+            const mangaId = resultado.lastInsertRowId;
 
             for (const generoId of generosIds) {
                 await bd.runAsync(
@@ -229,7 +217,7 @@ import * as SQLite from 'expo-sqlite';
                     (manga_id, genero_id)
                     VALUES (?, ?)
                     `,
-                    [manga.id, generoId]
+                    [mangaId, generoId]
                 );
             }
         });
@@ -238,7 +226,7 @@ import * as SQLite from 'expo-sqlite';
     //PACTH para atualizar os mangas e seus gêneros
 
     export const atualizarManga = async (
-            id: string,
+            id: number,
             dados: Partial<Manga>
         ) => {
             const bd = await getDB();
@@ -267,9 +255,15 @@ import * as SQLite from 'expo-sqlite';
     //DELETE para apagar os outros dados do banco
 
     export const deletarManga = async (
-        id: string
+        id: number
     ) => {
         const bd = await getDB();
 
-        await bd.runAsync('DELETE * FROM mangas WHERE id = ?', id)
-    }
+        await bd.runAsync(
+            `
+            DELETE
+            FROM mangas 
+            WHERE id = ?
+            `, 
+            [id]);
+    };
