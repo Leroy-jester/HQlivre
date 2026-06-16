@@ -1,65 +1,116 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native';
+
+import { Image } from 'expo-image';
+
 import { MaterialIcons } from '@expo/vector-icons';
+
 import { MangaCompleto } from './Types/typos';
 
 interface CardProps {
   manga: MangaCompleto;
+  onPress?: () => void;
 }
 
-export function Card({ manga }: CardProps) {
+export function Card({
+  manga,
+  onPress
+}: CardProps) {
+
   return (
-    <View style={styles.card}>
-      <Image
-        source={{ uri: manga.image_uri }}
-        style={styles.capa}
-      />
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+    >
+      <View style={styles.card}>
 
-      <View style={styles.info}>
-        <Text style={styles.titulo}>{manga.nome}</Text>
+        <Image
+          source={{ uri: manga.image_uri }}
+          style={styles.capa}
+        />
 
-        <Text style={styles.autor}>
-          {manga.autor}
-        </Text>
+        <View style={styles.info}>
 
-        <Text style={styles.texto}>
-          <Text style={styles.negrito}>Gênero: </Text>
-          {manga.generos = []}
-        </Text>
+          <Text
+            style={styles.titulo}
+            numberOfLines={2}
+          >
+            {manga.nome}
+          </Text>
 
-        <Text style={styles.texto}>
-          <Text style={styles.negrito}>Capítulos: </Text>
-          {manga.chapters}
-        </Text>
+          <Text style={styles.autor}>
+            {manga.autor}
+          </Text>
 
-        <View style={styles.estrelas}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <MaterialIcons
-              key={star}
-              name={star <= manga.note ? 'star' : 'star-border'}
-              size={24}
-              color="#FFC107"
-            />
-          ))}
+          <Text style={styles.texto}>
+            <Text style={styles.negrito}>
+              Gêneros:
+            </Text>{' '}
+            {manga.generos.length > 0
+              ? manga.generos
+                  .map(g => g.nome_genero)
+                  .join(', ')
+              : 'Sem gênero'}
+          </Text>
+
+          <Text style={styles.texto}>
+            <Text style={styles.negrito}>
+              Capítulos:
+            </Text>{' '}
+            {manga.chapters}
+          </Text>
+
+          <Text style={styles.texto}>
+            <Text style={styles.negrito}>
+              Status:
+            </Text>{' '}
+            {manga.status}
+          </Text>
+
+          <View style={styles.estrelas}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <MaterialIcons
+                key={star}
+                name={
+                  star <= Math.round(manga.note)
+                    ? 'star'
+                    : 'star-border'
+                }
+                size={22}
+                color="#FFC107"
+              />
+            ))}
+          </View>
+
         </View>
-      </View>
 
-      <MaterialIcons
-        name="star"
-        size={30}
-        color="#FFC107"
-        style={styles.favorito}
-      />
-    </View>
+        {manga.favorite && (
+          <MaterialIcons
+            name="star"
+            size={30}
+            color="#FFC107"
+            style={styles.favorito}
+          />
+        )}
+
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
-    backgroundColor: '#2d2d2d',
+    backgroundColor: '#2D2D2D',
     borderRadius: 12,
     overflow: 'hidden',
     marginVertical: 8,
+    marginHorizontal: 10,
+    position: 'relative',
   },
 
   capa: {
@@ -73,19 +124,21 @@ const styles = StyleSheet.create({
   },
 
   titulo: {
-    color: '#fff',
-    fontSize: 24,
+    color: '#FFFFFF',
+    fontSize: 22,
     fontWeight: 'bold',
   },
 
   autor: {
-    color: '#bbb',
-    marginBottom: 15,
+    color: '#BBBBBB',
+    marginTop: 4,
+    marginBottom: 12,
   },
 
   texto: {
-    color: '#fff',
-    marginBottom: 8,
+    color: '#FFFFFF',
+    marginBottom: 6,
+    fontSize: 14,
   },
 
   negrito: {
@@ -98,7 +151,7 @@ const styles = StyleSheet.create({
   },
 
   favorito: {
-    position: 'relative',
+    position: 'absolute',
     top: 10,
     right: 10,
   },

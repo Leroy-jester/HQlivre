@@ -14,7 +14,7 @@ import {
             listarGeneros,
             inserirGeneros
         } from '../components/Crud';
-import { TopBar } from '../components/Topbar';
+import { TopBar } from '../components/TopBar';
 
 export function Catalog({ navigation }: any) {
 
@@ -42,10 +42,6 @@ export function Catalog({ navigation }: any) {
       await inserirGeneros();
 
       console.log('Generos inseridos');
-
-      const generos = await listarGeneros();
-
-      console.log('GENEROS:', generos);
 
       await carregarMangas();
     } catch (error) {

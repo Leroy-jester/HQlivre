@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     View,
     Text,
@@ -43,7 +42,7 @@ export function TopBar({
             style={[
                 styles.wrapper,
                 {
-                    paddingTop: insets.top + 30
+                    paddingTop: insets.top
                 }
             ]}
         >
@@ -112,11 +111,11 @@ export function TopBar({
 
 const styles = StyleSheet.create({
     wrapper: {
-        backgroundColor: '#ff0000',
+        backgroundColor: '#680606',
     },
 
     container: {
-        backgroundColor: '#fbff00',
+        backgroundColor: '#680606',
         height: 70,
         flexDirection: 'row',
         alignItems: 'center',

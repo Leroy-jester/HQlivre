@@ -1,6 +1,6 @@
 import { View, Text, Button } from 'react-native';
-import { TopBar } from '../components/Topbar';
 import { Footer } from '../components/Footer';
+import { TopBar } from '../components/TopBar';
 
 export function Favorite({ navigation }: any) {
   return (

@@ -456,7 +456,7 @@ import { Platform } from 'react-native';
                 SELECT *
                 FROM mangas
                 ORDER BY created_at DESC
-                LIMIT 10
+                LIMIT 12
                 `
             );
 

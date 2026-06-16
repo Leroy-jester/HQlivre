@@ -1,5 +1,5 @@
 import { Text } from "react-native";
-import { TopBar } from "../components/Topbar";
+import { TopBar } from "../components/TopBar";
 
 export function Detail({ route }: any) {
   <TopBar type="main"/>
