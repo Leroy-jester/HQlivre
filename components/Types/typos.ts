@@ -1,5 +1,5 @@
 export type Manga = {
-    id?: string;
+    id?: number;
     image_uri: string;
     nome: string;
     autor: string;
@@ -7,9 +7,10 @@ export type Manga = {
     status: string;
     note: number;
     description: string;
+    favorite?: boolean;
 }
 export type Gender = {
-    id: string;
+    id: number;
     nome_genero: string;
 }
 export type MangaCompleto = Manga & {
@@ -17,7 +18,16 @@ export type MangaCompleto = Manga & {
 }
 
 export type MangaFavorito = {
-    id: string;
+    id: number;
     manga_id: number;
     nome: string
 }
+
+export type RootStackParamList = {
+    Home: undefined;
+    Favoritos: undefined;
+    Catalogo: undefined;
+    detalhes: {
+        mangaId: number;
+    };
+};

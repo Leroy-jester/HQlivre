@@ -20,7 +20,7 @@ import { Platform } from 'react-native';
     }
 
     const bd = await SQLite.openDatabaseAsync('nossobanco');
-
+    // favorite 0 = false, 1 = true
     await bd.execAsync(`
         PRAGMA foreign_keys = ON;
         PRAGMA journal_mode = WAL;
@@ -33,6 +33,7 @@ import { Platform } from 'react-native';
             status TEXT,
             note REAL,
             description TEXT,
+            favorite INTEGER DEFAULT 0,
             sync_status TEXT DEFAULT 'pending',
             created_at TEXT,
             updated_at TEXT
@@ -136,27 +137,29 @@ import { Platform } from 'react-native';
     export const pegarMangasPorNome = async (nome: string) => {
     const bd = await SQLite.openDatabaseAsync('nossobanco');
 
+        try {
+            const mangas = await bd.getAllAsync<Manga>(
+                        `
+                        SELECT *
+                        FROM mangas
+                        WHERE nome LIKE ?
+                        `,
+                        [`%${nome}%`]
+                    );
 
-        const mangas = await bd.getAllAsync<Manga>(
-            `
-            SELECT *
-            FROM mangas
-            WHERE nome LIKE ?
-            `,
-            [`%${nome}%`]
-        );
-
-        return Promise.all(
-            mangas.map(montarManga)
-        );
-        await bd.closeAsync();
+                    return Promise.all(
+                        mangas.map(montarManga)
+                    );
+        } finally {
+            await bd.closeAsync();
+        }
     };
     //GET by GENDER, retorna todos os mangas baseados no gênero
     export const pegarMangasPorGenero = async (generoId: number) => {
     const bd = await SQLite.openDatabaseAsync('nossobanco');
 
-
-        const mangas = await bd.getAllAsync<Manga>(
+        try {
+            const mangas = await bd.getAllAsync<Manga>(
             `
             SELECT m.*
             FROM mangas m
@@ -165,33 +168,62 @@ import { Platform } from 'react-native';
             WHERE mg.genero_id = ?
             `,
             [generoId]
-        );
+            );
 
-        return Promise.all(
-            mangas.map(montarManga)
-        );
+            return Promise.all(
+                mangas.map(montarManga)
+            );
+        } finally {      
         await bd.closeAsync();
+        }
     };
     //GET by autor, retorna todas as obras que aquele escritor já fez obs: quando for postar um mangá dar opção baseado nos mangakás já colocado lá
     export const pegarMangasPorAutor = async (autor: string) => {
     const bd = await SQLite.openDatabaseAsync('nossobanco');
+        try {
+            const mangas = await bd.getAllAsync<Manga>(
+                `
+                SELECT *
+                FROM mangas
+                WHERE autor LIKE ?
+                `,
+                [`%${autor}%`]
+            );
 
-
-        const mangas = await bd.getAllAsync<Manga>(
-            `
-            SELECT *
-            FROM mangas
-            WHERE autor LIKE ?
-            `,
-            [`%${autor}%`]
-        );
-
-        return Promise.all(
-            mangas.map(montarManga)
-        );
-        await bd.closeAsync();
+            return Promise.all(
+                mangas.map(montarManga)
+            );
+        } finally {
+            await bd.closeAsync();
+        }
     };
+    //GET by ID, retorna a obra do id correspondente
+    export const pegarMangaPorId = async (
+    id: number
+    ) => {
 
+        const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+        try {
+
+            const manga = await bd.getFirstAsync<Manga>(
+                `
+                SELECT *
+                FROM mangas
+                WHERE id = ?
+                `,
+                [id]
+            );
+
+            if (!manga)
+                return null;
+
+            return montarManga(manga);
+
+        } finally {
+            await bd.closeAsync();
+        }
+    };
     /* Vai retornar algo parecido com isso
 
     {
@@ -216,75 +248,75 @@ import { Platform } from 'react-native';
 
     //Post
 
-export const enviarManga = async (
-  manga: Manga,
-  generosIds: number[]
-) => {
-      console.log('ENTROU EM ENVIAR MANGA');
+    export const enviarManga = async (
+    manga: Manga,
+    generosIds: number[]
+    ) => {
+        console.log('ENTROU EM ENVIAR MANGA');
 
-  const bd = await SQLite.openDatabaseAsync('nossobanco');
+    const bd = await SQLite.openDatabaseAsync('nossobanco');
 
-  try {
+    try {
 
-    console.log('Banco aberto');
+        console.log('Banco aberto');
 
-    const resultado = await bd.runAsync(
-      `
-      INSERT INTO mangas (
-        image_uri,
-        nome,
-        autor,
-        chapters,
-        status,
-        note,
-        description,
-        created_at,
-        updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        manga.image_uri,
-        manga.nome,
-        manga.autor,
-        manga.chapters,
-        manga.status,
-        manga.note,
-        manga.description,
-        new Date().toISOString(),
-        new Date().toISOString()
-      ]
-    );
-
-    console.log('Manga inserido');
-
-    const mangaId = resultado.lastInsertRowId;
-
-    console.log('ID:', mangaId);
-
-    for (const generoId of generosIds) {
-      console.log('Inserindo gênero:', generoId);
-
-      await bd.runAsync(
+        const resultado = await bd.runAsync(
         `
-        INSERT INTO mangas_genders
-        (manga_id, genero_id)
-        VALUES (?, ?)
+        INSERT INTO mangas (
+            image_uri,
+            nome,
+            autor,
+            chapters,
+            status,
+            note,
+            description,
+            created_at,
+            updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [mangaId, generoId]
-      );
+        [
+            manga.image_uri,
+            manga.nome,
+            manga.autor,
+            manga.chapters,
+            manga.status,
+            manga.note,
+            manga.description,
+            new Date().toISOString(),
+            new Date().toISOString()
+        ]
+        );
+
+        console.log('Manga inserido');
+
+        const mangaId = resultado.lastInsertRowId;
+
+        console.log('ID:', mangaId);
+
+        for (const generoId of generosIds) {
+        console.log('Inserindo gênero:', generoId);
+
+        await bd.runAsync(
+            `
+            INSERT INTO mangas_genders
+            (manga_id, genero_id)
+            VALUES (?, ?)
+            `,
+            [mangaId, generoId]
+        );
+        }
+
+        console.log('Tudo concluído');
+
+        return mangaId;
+    } catch (error) {
+        console.error('ERRO SQLITE:', error);
+        throw error;
+    } finally {
+        await bd.closeAsync();
     }
-
-    console.log('Tudo concluído');
-
-    return mangaId;
-  } catch (error) {
-    console.error('ERRO SQLITE:', error);
-    throw error;
-  } finally {
-    await bd.closeAsync();
-  }
-};
+    };
 
     //PACTH para atualizar os mangas e seus gêneros
 
@@ -333,4 +365,106 @@ export const enviarManga = async (
             `, 
             [id]);
             await bd.closeAsync();
+    };
+
+    //FAVORITAR para favoritar um mangá em questão hehe
+
+    export const favoritarManga = async (
+    mangaId: number,
+    favorito: boolean
+    ) => {
+
+        const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+        try {
+
+            await bd.runAsync(
+                `
+                UPDATE mangas
+                SET favorite = ?
+                WHERE id = ?
+                `,
+                [favorito ? 1 : 0, mangaId]
+            );
+
+        } finally {
+            await bd.closeAsync();
+        }
+    };
+
+    //pegar Favorito
+
+    export const pegarFavoritos = async () => {
+
+        const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+        try {
+
+            const mangas = await bd.getAllAsync<Manga>(
+                `
+                SELECT *
+                FROM mangas
+                WHERE favorite = 1
+                `
+            );
+
+            return Promise.all(
+                mangas.map(montarManga)
+            );
+
+        } finally {
+            await bd.closeAsync();
+        }
+    };
+
+    //PEGAR destaques
+
+    export const pegarDestaques = async () => {
+
+        const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+        try {
+
+            const mangas = await bd.getAllAsync<Manga>(
+                `
+                SELECT *
+                FROM mangas
+                ORDER BY note DESC
+                LIMIT 10
+                `
+            );
+
+            return Promise.all(
+                mangas.map(montarManga)
+            );
+
+        } finally {
+            await bd.closeAsync();
+        }
+    };
+
+    //PEGAR Lançamentos
+
+    export const pegarLancamentos = async () => {
+
+        const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+        try {
+
+            const mangas = await bd.getAllAsync<Manga>(
+                `
+                SELECT *
+                FROM mangas
+                ORDER BY created_at DESC
+                LIMIT 10
+                `
+            );
+
+            return Promise.all(
+                mangas.map(montarManga)
+            );
+
+        } finally {
+            await bd.closeAsync();
+        }
     };

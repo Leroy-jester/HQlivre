@@ -14,6 +14,7 @@ import {
             listarGeneros,
             inserirGeneros
         } from '../components/Crud';
+import { TopBar } from '../components/Topbar';
 
 export function Catalog({ navigation }: any) {
 
@@ -88,7 +89,8 @@ export function Catalog({ navigation }: any) {
     };
     
   return (
-    <View>
+    <View style={{ flex: 1 }}>
+      <TopBar type="main"/>
             <Text>Catálôgo</Text>
               <TouchableOpacity onPress={cadastrarTeste}>
                   <Text>Cadastrar Teste</Text>
@@ -97,7 +99,6 @@ export function Catalog({ navigation }: any) {
             <View>
             <FlashList
                 data={mangas}
-                estimatedItemSize={100}
                 renderItem={({ item }) => (
                     <View>
                         <Text>{item.nome}</Text>

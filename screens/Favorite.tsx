@@ -1,23 +1,13 @@
 import { View, Text, Button } from 'react-native';
+import { TopBar } from '../components/Topbar';
+import { Footer } from '../components/Footer';
 
 export function Favorite({ navigation }: any) {
   return (
-    <View>
-        <div>
-      <Text>Home</Text>
-
-      <Button
-        title="Ir para Home"
-        onPress={() => navigation.navigate('Home')}
-      />
-      <Button
-        title="Ir para Catalogo"
-        onPress={() => navigation.navigate('Catalogo')}
-      />
-              </div>
-        <div>
-            
-        </div>
+    <View style={{ flex: 1 }}>
+      <TopBar type="main"/>
+      <Text>Favorite</Text>
+    <Footer/>
     </View>
   );
 }

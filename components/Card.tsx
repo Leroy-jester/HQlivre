@@ -23,7 +23,7 @@ export function Card({ manga }: CardProps) {
 
         <Text style={styles.texto}>
           <Text style={styles.negrito}>Gênero: </Text>
-          {manga.generos}
+          {manga.generos = []}
         </Text>
 
         <Text style={styles.texto}>
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
   },
 
   favorito: {
-    position: 'absolute',
+    position: 'relative',
     top: 10,
     right: 10,
   },
