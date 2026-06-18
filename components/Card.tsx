@@ -4,12 +4,10 @@ import {
   StyleSheet,
   TouchableOpacity
 } from 'react-native';
-
 import { Image } from 'expo-image';
-
 import { MaterialIcons } from '@expo/vector-icons';
-
 import { MangaCompleto } from './Types/typos';
+import erro404 from '../assets/erro404.jpg'
 
 interface CardProps {
   manga: MangaCompleto;
@@ -20,6 +18,12 @@ export function Card({
   manga,
   onPress
 }: CardProps) {
+    const capaValida =
+  manga.image_uri &&
+  manga.image_uri !== 'asd' &&
+  manga.image_uri !== 'null' &&
+  manga.image_uri !== 'undefined' &&
+  manga.image_uri.trim() !== '';
 
   return (
     <TouchableOpacity
@@ -29,7 +33,7 @@ export function Card({
       <View style={styles.card}>
 
         <Image
-          source={{ uri: manga.image_uri }}
+          source={capaValida ? { uri: manga.image_uri } : erro404}
           style={styles.capa}
         />
 

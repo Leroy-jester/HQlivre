@@ -4,7 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  // Image
 } from 'react-native';
 import { Image } from 'expo-image';
 import { FlashList } from '@shopify/flash-list';
@@ -68,26 +69,32 @@ export function Main({ navigation }: any) {
         <FlashList
           horizontal
           data={destaques}
-          estimatedItemSize={140}
+          // estimatedItemSize={140}
           showsHorizontalScrollIndicator={false}
+            style={{
+              height: 180,
+              alignItems: 'center',
+            }}
           renderItem={({ item }) => {
             const capaValida =
               item.image_uri &&
+              item.image_uri !== 'asd' &&
               item.image_uri !== 'null' &&
               item.image_uri !== 'undefined' &&
               item.image_uri.trim() !== '';
-
+              // console.log(item.nome, item.image_uri);
             return (
               <TouchableOpacity
                 onPress={() =>
                   navigation.navigate(
                     'detalhes',
                     {
-                      mangaId: item.id
+                      id: item.id
                     }
                   )
                 }
               >
+                
                 <Image
                   source={
                     capaValida
@@ -106,42 +113,47 @@ export function Main({ navigation }: any) {
           Lançamentos
         </Text>
 
-        <FlashList
-          data={lancamentos}
-          estimatedItemSize={150}
-          numColumns={3}
-          scrollEnabled={false}
-          renderItem={({ item }) => {
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}
+        >
+          {lancamentos.map(item => {
             const capaValida =
               item.image_uri &&
+              item.image_uri !== 'asd' &&
               item.image_uri !== 'null' &&
               item.image_uri !== 'undefined' &&
               item.image_uri.trim() !== '';
-
-            return (
+            return(
               <TouchableOpacity
-                onPress={() =>
+
+              onPress={() =>
                   navigation.navigate(
                     'detalhes',
                     {
-                      mangaId: item.id
+                      id: item.id
                     }
                   )
                 }
-              >
-                <Image
-                  source={
-                    capaValida
+
+              key={item.id}
+              style={{ margin: 5 }}
+            >
+              <Image
+                source={
+                  capaValida
                       ? { uri: item.image_uri }
                       : erro404
-                  }
-                  style={styles.lancamento}
-                  contentFit="cover"
-                />
-              </TouchableOpacity>
-            );
-          }}
-        />
+                }
+                style={styles.lancamento}
+              />
+            </TouchableOpacity>
+            )
+          })}
+        </View>
 
       </ScrollView>
 
@@ -160,7 +172,8 @@ const styles = StyleSheet.create({
 
   banner: {
     backgroundColor: '#383838',
-    padding: 20,
+    margin: 10,
+    padding: 15,
   },
 
   bannerText: {
@@ -178,17 +191,17 @@ const styles = StyleSheet.create({
   },
 
   destaque: {
-    width: 130,
-    height: 190,
-    marginHorizontal: 5,
+    width: 110,
+    height: 160,
     borderRadius: 10,
+    marginHorizontal: 6,
   },
 
   lancamento: {
-    width: 110,
-    height: 160,
-    margin: 5,
+    width: 100,
+    height: 145,
     borderRadius: 10,
+    margin: 5,
   },
 
 });

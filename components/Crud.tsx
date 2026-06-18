@@ -51,10 +51,7 @@ import { Platform } from 'react-native';
             FOREIGN KEY (manga_id) REFERENCES mangas(id) ON DELETE CASCADE,
             FOREIGN KEY (genero_id) REFERENCES genders(id) ON DELETE CASCADE
         );
-        `);
-        
-        await bd.closeAsync();
-  
+        `);  
     }
     // função para não ficar repetindo código
 
@@ -105,17 +102,25 @@ import { Platform } from 'react-native';
     };
 
     //GET de generos
-    export const listarGeneros = async () => {
-        const bd = await SQLite.openDatabaseAsync('nossobanco');
+    export const listarGeneros = async (): Promise<Gender[]> => {
 
-        try {
-            return await bd.getAllAsync(
-            'SELECT * FROM genders'
-            );
-        } finally {
-            await bd.closeAsync();
-        }
-    };      
+    const bd = await SQLite.openDatabaseAsync('nossobanco');
+
+    try {
+
+        const generos = await bd.getAllAsync<Gender>(
+        `
+        SELECT *
+        FROM genders
+        `
+        );
+
+        return generos;
+
+    } finally {
+        await bd.closeAsync();
+    }
+    };     
 
     //GET ALL, retorna todos os mangas postados e seus gêneros 
     export const pegarMangas = async () => {
@@ -258,7 +263,14 @@ import { Platform } from 'react-native';
 
     try {
 
-        console.log('Banco aberto');
+    console.log('DADOS RECEBIDOS');
+    console.log(JSON.stringify(manga, null, 2));
+    console.log('GENEROS:', generosIds);
+
+    console.log(
+        manga.image_uri,
+        typeof manga.image_uri
+    );
 
         const resultado = await bd.runAsync(
         `
@@ -276,13 +288,13 @@ import { Platform } from 'react-native';
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
-            manga.image_uri,
-            manga.nome,
-            manga.autor,
-            manga.chapters,
-            manga.status,
-            manga.note,
-            manga.description,
+            manga.image_uri ?? '',
+            manga.nome ?? '',
+            manga.autor ?? '',
+            manga.chapters ?? 0,
+            manga.status ?? '',
+            manga.note ?? 0,
+            manga.description ?? '',
             new Date().toISOString(),
             new Date().toISOString()
         ]
@@ -313,8 +325,6 @@ import { Platform } from 'react-native';
     } catch (error) {
         console.error('ERRO SQLITE:', error);
         throw error;
-    } finally {
-        await bd.closeAsync();
     }
     };
 
@@ -430,7 +440,7 @@ import { Platform } from 'react-native';
                 SELECT *
                 FROM mangas
                 ORDER BY note DESC
-                LIMIT 10
+                LIMIT 3
                 `
             );
 

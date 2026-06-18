@@ -9,6 +9,7 @@
     "@shopify/flash-list": "2.0.2",
     "expo": "~56.0.11",
     "expo-image": "~56.0.11",
+    "expo-image-picker": "~56.0.18",
     "expo-sqlite": "~56.0.5",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
