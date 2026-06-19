@@ -17,6 +17,7 @@ import {
 } from '../components/Crud';
 import { MangaCompleto } from '../components/Types/typos';
 import erro404 from '../assets/erro404.jpg'
+import { buscarMangasAPI } from '../components/Api';
 
 
 export function Main({ navigation }: any) {
@@ -28,22 +29,28 @@ export function Main({ navigation }: any) {
     carregar();
   }, []);
 
-  async function carregar() {
-    try {
+async function carregar() {
 
-      const dadosDestaques =
-        await pegarDestaques();
+  try {
 
-      const dadosLancamentos =
-        await pegarLancamentos();
+    const mangas =
+      await buscarMangasAPI();
 
-      setDestaques(dadosDestaques);
-      setLancamentos(dadosLancamentos);
+    console.log(
+      'API:',
+      JSON.stringify(mangas, null, 2)
+    );
 
-    } catch (erro) {
-      console.log(erro);
-    }
+  } catch (erro) {
+
+    console.log(
+      'Erro API:',
+      erro
+    );
+
   }
+
+}
 
   return (
     <View style={styles.container}>
@@ -89,7 +96,7 @@ export function Main({ navigation }: any) {
                   navigation.navigate(
                     'detalhes',
                     {
-                      id: item.id
+                      mangaId: item.id
                     }
                   )
                 }
@@ -134,7 +141,7 @@ export function Main({ navigation }: any) {
                   navigation.navigate(
                     'detalhes',
                     {
-                      id: item.id
+                      mangaId: item.id
                     }
                   )
                 }

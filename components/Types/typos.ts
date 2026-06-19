@@ -1,5 +1,7 @@
 export type Manga = {
-    id?: number;
+    id?: number;          // SQLite
+    server_id?: string;   // MongoDB (_id)
+
     image_uri: string;
     nome: string;
     autor: string;
@@ -7,6 +9,7 @@ export type Manga = {
     status: string;
     note: number;
     description: string;
+
     favorite?: boolean;
 }
 export type Gender = {

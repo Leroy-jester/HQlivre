@@ -26,6 +26,7 @@ import { Platform } from 'react-native';
         PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS mangas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            server_id TEXT,
             image_uri TEXT,
             nome TEXT NOT NULL,
             autor TEXT NOT NULL,
@@ -55,8 +56,7 @@ import { Platform } from 'react-native';
     }
     // função para não ficar repetindo código
 
-    const montarManga = async (manga: Manga): Promise<MangaCompleto> => {
-    const bd = await SQLite.openDatabaseAsync('nossobanco');
+    const montarManga = async (bd: SQLite.SQLiteDatabase , manga: Manga): Promise<MangaCompleto> => {
 
         if (manga.id == null) {
             throw new Error('Manga sem ID');
@@ -132,7 +132,10 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-            mangas.map(montarManga)
+            mangas.map(m =>  montarManga(bd,{
+                ...m,
+                favorite: Boolean(m.favorite)
+            }))
             );
         } finally {
             await bd.closeAsync();
@@ -153,7 +156,10 @@ import { Platform } from 'react-native';
                     );
 
                     return Promise.all(
-                        mangas.map(montarManga)
+                    mangas.map(m =>  montarManga(bd ,{
+                        ...m,
+                        favorite: Boolean(m.favorite)
+                    }))
                     );
         } finally {
             await bd.closeAsync();
@@ -176,7 +182,10 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-                mangas.map(montarManga)
+            mangas.map(m =>  montarManga(bd,{
+                ...m,
+                favorite: Boolean(m.favorite)
+            }))
             );
         } finally {      
         await bd.closeAsync();
@@ -196,7 +205,10 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-                mangas.map(montarManga)
+            mangas.map(m =>  montarManga(bd, {
+                ...m,
+                favorite: Boolean(m.favorite)
+            }))
             );
         } finally {
             await bd.closeAsync();
@@ -223,7 +235,10 @@ import { Platform } from 'react-native';
             if (!manga)
                 return null;
 
-            return montarManga(manga);
+            return montarManga(bd ,{
+                ...manga,
+                favorite: Boolean(manga.favorite)
+            });
 
         } finally {
             await bd.closeAsync();
@@ -275,6 +290,7 @@ import { Platform } from 'react-native';
         const resultado = await bd.runAsync(
         `
         INSERT INTO mangas (
+            server_id,
             image_uri,
             nome,
             autor,
@@ -419,7 +435,7 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-                mangas.map(montarManga)
+                mangas.map(m => montarManga(bd, m))
             );
 
         } finally {
@@ -445,7 +461,7 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-                mangas.map(montarManga)
+                mangas.map(m => montarManga(bd, m))
             );
 
         } finally {
@@ -471,7 +487,7 @@ import { Platform } from 'react-native';
             );
 
             return Promise.all(
-                mangas.map(montarManga)
+                mangas.map(m => montarManga(bd, m))
             );
 
         } finally {
