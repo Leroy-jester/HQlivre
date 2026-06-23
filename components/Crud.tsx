@@ -1,17 +1,12 @@
 import * as SQLite from 'expo-sqlite';
-import { Platform } from 'react-native';
 import { Manga, Gender, MangaCompleto } from './Types/typos';
 import gendersData from './data/gender.json';
-import { buscarMangasAPI, criarMangaAPI, atualizarMangaAPI, deletarMangaAPI } from './Api';
-import { getDatabase } from './database'; // IMPORTANTE
+import { getDatabase } from './database';
 
-// ──────────────────────────────
-// 1. INICIALIZAÇÃO DO BANCO
-// ──────────────────────────────
 export const initDatabase = async () => {
   try {
     console.log("PASSO 1");
-    const db = await getDatabase(); // Usa a instância única
+    const db = await getDatabase();
 
     console.log("PASSO 2");
     await db.execAsync(`
@@ -59,9 +54,6 @@ export const initDatabase = async () => {
   }
 };
 
-// ──────────────────────────────
-// 2. HELPERS
-// ──────────────────────────────
 const montarMangaCompleto = async (db: SQLite.SQLiteDatabase, manga: Manga): Promise<MangaCompleto> => {
   if (!manga.id) throw new Error('Manga sem ID');
   const generos = await db.getAllAsync<Gender>(
@@ -82,11 +74,6 @@ const inserirGeneros = async (db: SQLite.SQLiteDatabase) => {
   }
 };
 
-// ──────────────────────────────
-// 3. OPERAÇÕES LOCAIS (CRUD)
-// ──────────────────────────────
-
-// CREATE
 export const criarMangaLocal = async (manga: Omit<Manga, 'id'>, generosIds: number[]): Promise<number> => {
   const db = await getDatabase(); // Usa a instância única
   
@@ -129,7 +116,6 @@ export const criarMangaLocal = async (manga: Omit<Manga, 'id'>, generosIds: numb
   }
 };
 
-// READ - todos generos
 export const listarGeneros = async (): Promise<Gender[]> => {
   const db = await getDatabase();
   try {
@@ -141,7 +127,6 @@ export const listarGeneros = async (): Promise<Gender[]> => {
   }
 };
 
-// READ – todos
 export const listarMangas = async (): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -160,7 +145,6 @@ export const listarMangas = async (): Promise<MangaCompleto[]> => {
   }
 };
 
-// READ – por ID
 export const buscarMangaPorId = async (id: number): Promise<MangaCompleto | null> => {
   const db = await getDatabase();
   try {
@@ -173,7 +157,6 @@ export const buscarMangaPorId = async (id: number): Promise<MangaCompleto | null
   }
 };
 
-// READ – por nome (busca parcial)
 export const buscarMangasPorNome = async (nome: string): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -188,7 +171,6 @@ export const buscarMangasPorNome = async (nome: string): Promise<MangaCompleto[]
   }
 };
 
-// READ – por gênero
 export const buscarMangasPorGenero = async (generoId: number): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -205,7 +187,6 @@ export const buscarMangasPorGenero = async (generoId: number): Promise<MangaComp
   }
 };
 
-// READ – por autor
 export const buscarMangasPorAutor = async (autor: string): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -236,7 +217,6 @@ export const buscarGenerosDoManga = async (mangaId: number): Promise<Gender[]> =
   }
 };
 
-// UPDATE
 export const atualizarMangaLocal = async (id: number, dados: Partial<Manga>, generosIds?: number[]) => {
   const db = await getDatabase();
   try {
@@ -277,7 +257,6 @@ export const atualizarMangaLocal = async (id: number, dados: Partial<Manga>, gen
   }
 };
 
-// DELETE (lógico – marca como deleted)
 export const deletarMangaLocal = async (id: number) => {
   const db = await getDatabase();
   try {
@@ -291,7 +270,6 @@ export const deletarMangaLocal = async (id: number) => {
   }
 };
 
-// FAVORITAR
 export const favoritarMangaLocal = async (mangaId: number, favorito: boolean) => {
   const db = await getDatabase();
   try {
@@ -305,7 +283,6 @@ export const favoritarMangaLocal = async (mangaId: number, favorito: boolean) =>
   }
 };
 
-// LISTAR FAVORITOS
 export const listarFavoritos = async (): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -319,7 +296,6 @@ export const listarFavoritos = async (): Promise<MangaCompleto[]> => {
   }
 };
 
-// DESTAQUES (top 3 notas)
 export const listarDestaques = async (): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {
@@ -333,7 +309,6 @@ export const listarDestaques = async (): Promise<MangaCompleto[]> => {
   }
 };
 
-// LANÇAMENTOS (últimos 12)
 export const listarLancamentos = async (): Promise<MangaCompleto[]> => {
   const db = await getDatabase();
   try {

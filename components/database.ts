@@ -5,14 +5,11 @@ let dbInstance: SQLite.SQLiteDatabase | null = null;
 let isInitializing = false;
 
 export const getDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
-  // Se já existe uma instância, retorna ela
   if (dbInstance) {
     return dbInstance;
   }
 
-  // Evita múltiplas inicializações simultâneas
   if (isInitializing) {
-    // Aguarda a inicialização terminar
     while (isInitializing) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -24,7 +21,6 @@ export const getDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
     console.log('Abrindo conexão com o banco...');
     dbInstance = await SQLite.openDatabaseAsync('mangadb');
     
-    // Configurações iniciais
     await dbInstance.execAsync(`
       PRAGMA foreign_keys = ON;
       PRAGMA journal_mode = WAL;
@@ -40,7 +36,6 @@ export const getDatabase = async (): Promise<SQLite.SQLiteDatabase> => {
   }
 };
 
-// Função para fechar o banco (usar apenas quando o app for encerrado)
 export const closeDatabase = async (): Promise<void> => {
   if (dbInstance) {
     try {

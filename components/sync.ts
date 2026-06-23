@@ -2,9 +2,8 @@ import * as SQLite from 'expo-sqlite';
 import { buscarMangasAPI, criarMangaAPI, atualizarMangaAPI, deletarMangaAPI } from './Api';
 import { Manga } from './Types/typos';
 import { buscarGenerosDoManga } from './Crud';
-import { getDatabase } from './database'; // IMPORTANTE
+import { getDatabase } from './database';
 
-// Converte um manga local para o formato esperado pela API (sem campos de controle)
 const paraFormatoAPI = async (manga: Manga): Promise<any> => {
   const { id, server_id, sync_status, created_at, updated_at, ...rest } = manga;
   const generos = id ? await buscarGenerosDoManga(id) : [];
@@ -16,10 +15,9 @@ const paraFormatoAPI = async (manga: Manga): Promise<any> => {
 };
 
 export const sincronizar = async (): Promise<void> => {
-  const db = await getDatabase(); // Usa a instância única
+  const db = await getDatabase(); 
 
   try {
-    // ── 1. Enviar pendências para a API ──
     const pendentes = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE sync_status = 'pending' OR sync_status = 'deleted'`
     );
@@ -61,7 +59,6 @@ export const sincronizar = async (): Promise<void> => {
       }
     }
 
-    // ── 2. Baixar dados da API e fazer merge ──
     const mangasAPI = await buscarMangasAPI();
 
     for (const mangaAPI of mangasAPI) {
@@ -106,7 +103,6 @@ export const sincronizar = async (): Promise<void> => {
             ]
           );
 
-          // Atualiza os gêneros
           await db.runAsync(`DELETE FROM mangas_genders WHERE manga_id = ?`, [existe.id]);
           if (mangaAPI.generos && Array.isArray(mangaAPI.generos)) {
             for (const gen of mangaAPI.generos) {
@@ -164,5 +160,4 @@ export const sincronizar = async (): Promise<void> => {
     console.error('Erro na sincronização:', err);
     throw err;
   }
-  // NÃO feche o banco aqui!
 };
