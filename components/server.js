@@ -19,7 +19,11 @@ const MangaSchema = new mongoose.Schema({
   status: String,
   note: Number,
   description: String,
-  favorite: Boolean
+  favorite: Boolean,
+  generos: [{ 
+    id: Number, 
+    nome_genero: String 
+  }]
 });
 
 const Manga = mongoose.model(

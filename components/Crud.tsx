@@ -3,54 +3,60 @@ import { Platform } from 'react-native';
 import { Manga, Gender, MangaCompleto } from './Types/typos';
 import gendersData from './data/gender.json';
 import { buscarMangasAPI, criarMangaAPI, atualizarMangaAPI, deletarMangaAPI } from './Api';
+import { getDatabase } from './database'; // IMPORTANTE
 
 // ──────────────────────────────
 // 1. INICIALIZAÇÃO DO BANCO
 // ──────────────────────────────
 export const initDatabase = async () => {
-  if (Platform.OS === 'web') {
-    console.log('WEB: SQLite não suportado');
-    return;
+  try {
+    console.log("PASSO 1");
+    const db = await getDatabase(); // Usa a instância única
+
+    console.log("PASSO 2");
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS mangas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_id TEXT UNIQUE,
+        image_uri TEXT,
+        nome TEXT NOT NULL,
+        autor TEXT NOT NULL,
+        chapters INTEGER,
+        status TEXT,
+        note REAL,
+        description TEXT,
+        favorite INTEGER DEFAULT 0,
+        sync_status TEXT DEFAULT 'synced',
+        created_at TEXT,
+        updated_at TEXT
+      );
+    `);
+
+    console.log("PASSO 3");
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS genders (
+        id INTEGER PRIMARY KEY,
+        nome_genero TEXT NOT NULL
+      );
+    `);
+
+    console.log("PASSO 4");
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS mangas_genders (
+        manga_id INTEGER,
+        genero_id INTEGER,
+        PRIMARY KEY(manga_id, genero_id)
+      );
+    `);
+
+    console.log("PASSO 5");
+    await inserirGeneros(db);
+
+    console.log("PASSO 6 - FINALIZADO");
+  } catch (e) {
+    console.log("ERRO INIT:", e);
+    throw e;
   }
-
-  const db = await SQLite.openDatabaseAsync('mangadb');
-  await db.execAsync(`
-    PRAGMA foreign_keys = ON;
-    PRAGMA journal_mode = WAL;
-
-    CREATE TABLE IF NOT EXISTS mangas (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      server_id TEXT UNIQUE,
-      image_uri TEXT,
-      nome TEXT NOT NULL,
-      autor TEXT NOT NULL,
-      chapters INTEGER,
-      status TEXT,
-      note REAL,
-      description TEXT,
-      favorite INTEGER DEFAULT 0,
-      sync_status TEXT DEFAULT 'synced',
-      created_at TEXT,
-      updated_at TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS genders (
-      id INTEGER PRIMARY KEY,
-      nome_genero TEXT NOT NULL
-    );
-
-    CREATE TABLE IF NOT EXISTS mangas_genders (
-      manga_id INTEGER,
-      genero_id INTEGER,
-      PRIMARY KEY(manga_id, genero_id),
-      FOREIGN KEY (manga_id) REFERENCES mangas(id) ON DELETE CASCADE,
-      FOREIGN KEY (genero_id) REFERENCES genders(id) ON DELETE CASCADE
-    );
-  `);
-
-  // Insere gêneros se ainda não existirem
-  await inserirGeneros(db);
-  await db.closeAsync();
 };
 
 // ──────────────────────────────
@@ -82,9 +88,12 @@ const inserirGeneros = async (db: SQLite.SQLiteDatabase) => {
 
 // CREATE
 export const criarMangaLocal = async (manga: Omit<Manga, 'id'>, generosIds: number[]): Promise<number> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase(); // Usa a instância única
+  
   try {
     const now = new Date().toISOString();
+    console.log("ANTES DO INSERT");
+
     const result = await db.runAsync(
       `INSERT INTO mangas 
        (image_uri, nome, autor, chapters, status, note, description, favorite, sync_status, created_at, updated_at)
@@ -98,13 +107,15 @@ export const criarMangaLocal = async (manga: Omit<Manga, 'id'>, generosIds: numb
         manga.note || 0,
         manga.description || '',
         manga.favorite ? 1 : 0,
-        'pending',        // marca para sincronizar
+        'pending',
         now,
         now
       ]
     );
-    const mangaId = result.lastInsertRowId;
 
+    console.log("DEPOIS DO INSERT");
+    const mangaId = result.lastInsertRowId;
+    
     for (const gId of generosIds) {
       await db.runAsync(
         `INSERT INTO mangas_genders (manga_id, genero_id) VALUES (?, ?)`,
@@ -114,61 +125,72 @@ export const criarMangaLocal = async (manga: Omit<Manga, 'id'>, generosIds: numb
     return mangaId;
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
+  }
+};
+
+// READ - todos generos
+export const listarGeneros = async (): Promise<Gender[]> => {
+  const db = await getDatabase();
+  try {
+    const generos = await db.getAllAsync<Gender>('SELECT * FROM genders');
+    return generos;
+  } catch(err) {
+    console.error(err);
+    throw err;
   }
 };
 
 // READ – todos
 export const listarMangas = async (): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
-    const mangas = await db.getAllAsync<Manga>('SELECT * FROM mangas WHERE sync_status != "deleted"');
-    return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
+    const mangas = await db.getAllAsync<Manga>(
+      `SELECT * FROM mangas WHERE sync_status != 'deleted'`
+    );
+
+    const completos: MangaCompleto[] = [];
+    for (const manga of mangas) {
+      completos.push(await montarMangaCompleto(db, manga));
+    }
+    return completos;
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // READ – por ID
 export const buscarMangaPorId = async (id: number): Promise<MangaCompleto | null> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const manga = await db.getFirstAsync<Manga>('SELECT * FROM mangas WHERE id = ?', [id]);
     if (!manga) return null;
     return await montarMangaCompleto(db, manga);
-   } catch(err) {
+  } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  } finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // READ – por nome (busca parcial)
 export const buscarMangasPorNome = async (nome: string): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE nome LIKE ? AND sync_status != "deleted"`,
       [`%${nome}%`]
     );
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
-  }catch(err) {
+  } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // READ – por gênero
 export const buscarMangasPorGenero = async (generoId: number): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT m.* FROM mangas m
@@ -177,17 +199,15 @@ export const buscarMangasPorGenero = async (generoId: number): Promise<MangaComp
       [generoId]
     );
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
-  }catch(err) {
+  } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // READ – por autor
 export const buscarMangasPorAutor = async (autor: string): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE autor LIKE ? AND sync_status != "deleted"`,
@@ -196,20 +216,33 @@ export const buscarMangasPorAutor = async (autor: string): Promise<MangaCompleto
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
+  }
+};
+
+export const buscarGenerosDoManga = async (mangaId: number): Promise<Gender[]> => {
+  const db = await getDatabase();
+  try {
+    const generos = await db.getAllAsync<Gender>(
+      `SELECT g.* FROM genders g
+       INNER JOIN mangas_genders mg ON g.id = mg.genero_id
+       WHERE mg.manga_id = ?`,
+      [mangaId]
+    );
+    return generos;
+  } catch(err) {
+    console.error(err);
+    throw err;
   }
 };
 
 // UPDATE
 export const atualizarMangaLocal = async (id: number, dados: Partial<Manga>, generosIds?: number[]) => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const campos: string[] = [];
     const valores: any[] = [];
 
-    // Atualiza apenas os campos fornecidos
     Object.entries(dados).forEach(([chave, valor]) => {
       if (chave === 'id' || chave === 'server_id') return;
       if (chave === 'favorite') {
@@ -229,7 +262,6 @@ export const atualizarMangaLocal = async (id: number, dados: Partial<Manga>, gen
       valores
     );
 
-    // Se forneceu nova lista de gêneros, substitui
     if (generosIds) {
       await db.runAsync(`DELETE FROM mangas_genders WHERE manga_id = ?`, [id]);
       for (const gId of generosIds) {
@@ -241,15 +273,13 @@ export const atualizarMangaLocal = async (id: number, dados: Partial<Manga>, gen
     }
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // DELETE (lógico – marca como deleted)
 export const deletarMangaLocal = async (id: number) => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     await db.runAsync(
       `UPDATE mangas SET sync_status = 'deleted', updated_at = ? WHERE id = ?`,
@@ -257,15 +287,13 @@ export const deletarMangaLocal = async (id: number) => {
     );
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // FAVORITAR
 export const favoritarMangaLocal = async (mangaId: number, favorito: boolean) => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     await db.runAsync(
       `UPDATE mangas SET favorite = ?, sync_status = 'pending', updated_at = ? WHERE id = ?`,
@@ -273,15 +301,13 @@ export const favoritarMangaLocal = async (mangaId: number, favorito: boolean) =>
     );
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // LISTAR FAVORITOS
 export const listarFavoritos = async (): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE favorite = 1 AND sync_status != "deleted"`
@@ -289,15 +315,13 @@ export const listarFavoritos = async (): Promise<MangaCompleto[]> => {
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // DESTAQUES (top 3 notas)
 export const listarDestaques = async (): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE sync_status != "deleted" ORDER BY note DESC LIMIT 3`
@@ -305,15 +329,13 @@ export const listarDestaques = async (): Promise<MangaCompleto[]> => {
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
 
 // LANÇAMENTOS (últimos 12)
 export const listarLancamentos = async (): Promise<MangaCompleto[]> => {
-  const db = await SQLite.openDatabaseAsync('mangadb');
+  const db = await getDatabase();
   try {
     const mangas = await db.getAllAsync<Manga>(
       `SELECT * FROM mangas WHERE sync_status != "deleted" ORDER BY created_at DESC LIMIT 12`
@@ -321,8 +343,6 @@ export const listarLancamentos = async (): Promise<MangaCompleto[]> => {
     return Promise.all(mangas.map(m => montarMangaCompleto(db, m)));
   } catch(err) {
     console.error(err);
-    throw new Error('Algo deu muito errado ')
-  }finally {
-    await db.closeAsync();
+    throw err;
   }
 };
