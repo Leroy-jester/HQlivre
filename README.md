@@ -108,7 +108,7 @@ src
 │   ├── Favorite.tsx
 │   └── Main.tsx
 │
-└── image.d.ts
+└── App.tsx
 ```
 
 ---
